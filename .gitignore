@@ -1,0 +1,5 @@
+# Ignore jupyter environment files.
+.ipynb_checkpoints/
+__pycache__/
+
+.DS_store
