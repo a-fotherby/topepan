@@ -16,7 +16,7 @@ def readTecFile(fileCat, fileNum):
             columnHeaders[columnHeaders.index(i)] = i.replace('"', '')
     
         df = pd.read_csv(fileName, sep=' ', skipinitialspace=True, skiprows=[0,1,2], names=columnHeaders)
-    
+        
         return df, columnHeaders
 
 def plot2DTecFile(dataFrame, scalarName, vmin, vmax):
@@ -29,6 +29,9 @@ def plot2DTecFile(dataFrame, scalarName, vmin, vmax):
     plt.xlabel('y / m')
     plt.ylabel('x / m')
     plt.show()
+    
+def plot1DTecFile(dataFrame, scalarName):
+    plt.plot(dataFrame['X'], dataFrame[scalarName])
     
 def getDataCats(directory):
     os.chdir(directory)
@@ -43,6 +46,11 @@ def plotTimeNav(fileCat, time, plotVar, maxTime):
     df, columnHeaders = readTecFile(fileCat, time)
     vmin, vmax = findColorMapRange(maxTime, fileCat, plotVar)
     plot2DTecFile(df, plotVar, vmin, vmax)
+    
+def plotTimeNav1D(fileCat, time, plotVar, maxTime):
+    df, columnHeaders = readTecFile(fileCat, time)
+    display(df)
+    plot1DTecFile(df, plotVar)    
     
 def findColorMapRange(maxTime, fileCat, plotVar):
     minList = []
@@ -64,7 +72,7 @@ def importTimeSeries(fileName):
     with open(fileName) as f:
         f.readline()
         headerLine = f.readline()    
-    columnHeaders = headerLine[12:]
+    columnHeaders = headerLine[11:]
     columnHeaders = columnHeaders.replace("'", "")
     columnHeaders = columnHeaders.replace('"', "")
     columnHeaders = columnHeaders.replace('(yrs)', "")
