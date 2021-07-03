@@ -5,22 +5,22 @@ import matplotlib.cm as cm
 import os
 from glob import glob
 
-def readTecFile(fileCat, fileNum):
-    fileName = '{}{}.tec'.format(fileCat, fileNum)
-    with open(fileName) as f:
+def read_tecplot(file_cat, file_num):
+    file_name = '{}{}.tec'.format(file_cat, file_num)
+    with open(file_name) as f:
         f.readline()
-        headerLine = f.readline()
-        columnHeaders = headerLine.split()
-        columnHeaders = columnHeaders[2:]
-        for i in columnHeaders:
-            columnHeaders[columnHeaders.index(i)] = i.replace('"', '')
-    
-        df = pd.read_csv(fileName, sep=' ', skipinitialspace=True, skiprows=[0,1,2], names=columnHeaders)
+        header_line = f.readline()
+        column_headers = header_line.split()
+        column_headers = column_headers[2:]
+        for i in column_headers:
+            column_headers[column_headers.index(i)] = i.replace('"', '')
+                
+        df = pd.read_csv(file_name, sep=' ', skipinitialspace=True, skiprows=[0,1,2], names=column_headers)
         
-        return df, columnHeaders
+        return df, column_headers
 
-def plot2DTecFile(dataFrame, scalarName, vmin, vmax):
-    z = dataFrame.pivot('Y', 'X', scalarName)
+def tecplot_2d(data_frame, scalar_name, vmin, vmax):
+    z = data_frame.pivot('Y', 'X', scalar_name)
     x, y = np.meshgrid(z.columns.values, z.index.values)
     levels = np.linspace(vmin, vmax, 16)
     CS = plt.contourf(x, y, z, levels=levels, cmap=cm.viridis, extend='both')
@@ -30,60 +30,81 @@ def plot2DTecFile(dataFrame, scalarName, vmin, vmax):
     plt.ylabel('x / m')
     plt.show()
     
-def plot1DTecFile(dataFrame, scalarName):
-    plt.plot(dataFrame['X'], dataFrame[scalarName])
+def tecplot_1d(data_frame, scalar_name, lims):
+    lower, upper = lims
+    fig, ax = plt.subplots(figsize=(9,6))
+    ax.plot(data_frame['X'], data_frame[scalar_name])
     
-def getDataCats(directory):
+    if upper > 0:
+        upper = upper * 1.02
+    elif upper < 0: 
+        upper = upper * 0.98
+    else:
+        upper = -lower
+    
+    if lower > 0:
+        lower = lower * 0.98
+    elif lower < 0:
+        lower = lower * 1.02
+    else:
+        lower = -upper
+        
+    print(upper, lower)
+    ax.set_ylim(lower, upper)
+    
+    
+def data_cats(directory):
     os.chdir(directory)
-    fList = glob('*.tec')
-    fList = [i.rstrip('.tec') for i in fList]
-    fList = [i.rstrip('0123456789') for i in fList]
-    fSet = set(fList)
-    outputTotal = len(fList) / len(fSet)
-    return fSet, int(outputTotal)
+    f_list = glob('*.tec')
+    f_list = [i.rstrip('.tec') for i in f_list]
+    f_list = [i.rstrip('0123456789') for i in f_list]
+    f_set = set(f_list)
+    output_total = len(f_list) / len(f_set)
+    return f_set, int(output_total)
 
-def plotTimeNav(fileCat, time, plotVar, maxTime):
-    df, columnHeaders = readTecFile(fileCat, time)
-    vmin, vmax = findColorMapRange(maxTime, fileCat, plotVar)
-    plot2DTecFile(df, plotVar, vmin, vmax)
+def time_nav(file_cat, time, plot_var, max_time):
+    df, column_headers = read_tecplot(file_cat, time)
+    vmin, vmax = color_map_range(max_time, file_cat, plot_var)
+    tecplot_2d(df, plot_var, vmin, vmax)
     
-def plotTimeNav1D(fileCat, time, plotVar, maxTime):
-    df, columnHeaders = readTecFile(fileCat, time)
-    display(df)
-    plot1DTecFile(df, plotVar)    
+def time_nav_1d(file_cat, time, plot_var, max_time):
+    df, column_headers = read_tecplot(file_cat, time)
+    lims = plot_var_range(max_time, file_cat, plot_var)
+    tecplot_1d(df, plot_var, lims)    
     
-def findColorMapRange(maxTime, fileCat, plotVar):
-    minList = []
-    maxList = []
-    for t in range(1, maxTime):
-        df = readTecFile(fileCat, t)[0]
-        s = df.loc[:, plotVar]
-        minList.append(s.nsmallest(1).values)
-        maxList.append(s.nlargest(1).values)
+def plot_var_range(max_time, file_cat, plot_var):
+    min_list = []
+    max_list = []
+    for t in range(1, max_time+1):
+        df = read_tecplot(file_cat, t)[0]
+        s = df.loc[:, plot_var]
+        min_list.append(s.nsmallest(1).values)
+        max_list.append(s.nlargest(1).values)    
+        
+    lower = np.amin(min_list)
+    upper = np.amax(max_list)
+    
+    return lower, upper
 
-    timeSeriesMin = np.amin(minList)
-    timeSeriesMax = np.amax(maxList)
-    print(timeSeriesMin)
-    print(timeSeriesMax)
-    
-    return timeSeriesMin, timeSeriesMax
-
-def importTimeSeries(fileName):
-    with open(fileName) as f:
+def import_time_series(file_name):
+    with open(file_name) as f:
         f.readline()
-        headerLine = f.readline()    
-    columnHeaders = headerLine[11:]
-    columnHeaders = columnHeaders.replace("'", "")
-    columnHeaders = columnHeaders.replace('"', "")
-    columnHeaders = columnHeaders.replace('(yrs)', "")
-    columnHeaders = columnHeaders.replace(' ', "")
-    columnHeaders = columnHeaders.rstrip()
-    columnHeaders = columnHeaders.rstrip(',')
-    columnHeaders = columnHeaders.split(',')
+        header_line = f.readline()    
+    column_headers = header_line[11:]
+    column_headers = column_headers.replace("'", "")
+    column_headers = column_headers.replace('"', "")
+    column_headers = column_headers.replace('(days)', "")
+    column_headers = column_headers.replace(' ', "")
+    column_headers = column_headers.rstrip('\n')
+    column_headers = column_headers.rstrip(',')
+    column_headers = column_headers.split(',')
+    print(column_headers)
     
-    df = pd.read_csv(fileName, engine='python', sep='\s+', skiprows=[0,1], names=columnHeaders)
-    return df, columnHeaders
+    df = pd.read_csv(file_name, engine='python', sep='\s+', skiprows=[0,1]) 
+    df.columns=column_headers
+    return df, column_headers
 
-def plotBreakthrough(time, plotVar, dataFrame):
+def breakthrough(time, plot_var, data_frame):
     fig, ax = plt.subplots()
-    ax.plot(time, dataFrame.loc[:, plotVar])
+    ax.plot(time, data_frame.loc[:, plot_var])
+    return fig, ax
