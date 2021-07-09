@@ -30,28 +30,11 @@ def tecplot_2d(data_frame, scalar_name, vmin, vmax):
     plt.ylabel('x / m')
     plt.show()
     
-def tecplot_1d(data_frame, scalar_name, lims):
-    lower, upper = lims
+def initialise1D(file_cat, lims=(-1,1)):
+    df, column_headers = read_tecplot(file_cat, 1)
     fig, ax = plt.subplots(figsize=(9,6))
-    ax.plot(data_frame['X'], data_frame[scalar_name])
-    
-    if upper > 0:
-        upper = upper * 1.02
-    elif upper < 0: 
-        upper = upper * 0.98
-    else:
-        upper = -lower
-    
-    if lower > 0:
-        lower = lower * 0.98
-    elif lower < 0:
-        lower = lower * 1.02
-    else:
-        lower = -upper
-        
-    print(upper, lower)
-    ax.set_ylim(lower, upper)
-    
+    line, = ax.plot(df['X'], np.zeros_like(df['X']))
+    return fig, ax, line
     
 def data_cats(directory):
     os.chdir(directory)
@@ -64,7 +47,7 @@ def data_cats(directory):
 
 def time_nav(file_cat, time, plot_var, max_time):
     df, column_headers = read_tecplot(file_cat, time)
-    vmin, vmax = color_map_range(max_time, file_cat, plot_var)
+    vmin, vmax = plot_var_range(max_time, file_cat, plot_var)
     tecplot_2d(df, plot_var, vmin, vmax)
     
 def time_nav_1d(file_cat, time, plot_var, max_time):
