@@ -9,15 +9,20 @@ def read_tecplot(file_cat, file_num):
     file_name = '{}{}.tec'.format(file_cat, file_num)
     with open(file_name) as f:
         f.readline()
-        header_line = f.readline()
-        column_headers = header_line.split()
-        column_headers = column_headers[2:]
-        for i in column_headers:
-            column_headers[column_headers.index(i)] = i.replace('"', '')
-                
-        df = pd.read_csv(file_name, sep=' ', skipinitialspace=True, skiprows=[0,1,2], names=column_headers)
+        headerLine = f.readline()
+        headers=headerLine.split('"')
+        columnHeaders=[]
+        for string in headers:
+            if string.isspace() == False:
+                columnHeaders.append(string)
+        columnHeaders=columnHeaders[1:]   
+        df = pd.read_csv(file_name, sep=' ', skipinitialspace=True, skiprows=[0,1,2], names=columnHeaders)
+        df = df.replace('-','e-', regex=True)
+        df = df.replace('Ee','e', regex=True)
+        for i in columnHeaders:
+            df[i] = pd.to_numeric(df[i], downcast="float")
         
-        return df, column_headers
+        return df, columnHeaders
 
 def tecplot_2d(data_frame, scalar_name, vmin, vmax):
     z = data_frame.pivot('Y', 'X', scalar_name)
@@ -33,7 +38,7 @@ def tecplot_2d(data_frame, scalar_name, vmin, vmax):
 def initialise1D(file_cat, lims=(-1,1)):
     df, column_headers = read_tecplot(file_cat, 1)
     fig, ax = plt.subplots(figsize=(9,6))
-    line, = ax.plot(df['X'], np.zeros_like(df['X']))
+    line, = ax.plot(np.zeros_like(df['X']),df['X'])
     return fig, ax, line
     
 def data_cats(directory):
@@ -60,7 +65,7 @@ def plot_var_range(max_time, file_cat, plot_var):
     max_list = []
     for t in range(1, max_time+1):
         df = read_tecplot(file_cat, t)[0]
-        s = df.loc[:, plot_var]
+        s = pd.to_numeric(df.loc[:, plot_var], errors='coerce')
         min_list.append(s.nsmallest(1).values)
         max_list.append(s.nlargest(1).values)    
         
