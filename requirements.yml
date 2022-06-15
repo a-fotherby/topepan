@@ -1,0 +1,9 @@
+name: topepan
+dependencies:
+    - numpy
+    - pandas
+    - jupyter
+    - nb_conda_kernels
+    - matplotlib
+    - pathlib
+    - ipywidgets
