@@ -135,7 +135,6 @@ def breakthrough(time, plot_var, data_frame):
 
 def read_times(path):
     """return a dictionary of lines in a file, with the values as the line numbers.
-
     will ignore any commented lines in the ct input file, but will still count their line number,
     so line numbers in dictionary will map to the true line number in the file.
     """
