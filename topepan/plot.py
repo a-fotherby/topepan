@@ -10,20 +10,23 @@ def read_tecplot(file_cat, file_num):
     file_name = f'{file_cat}{file_num}.tec'
     with open(file_name) as f:
         f.readline()
-        headerLine = f.readline()
-        headers=headerLine.split('"')
-        columnHeaders=[]
+        header_line = f.readline()
+        headers = header_line.split('"')
+        column_headers = []
         for string in headers:
-            if string.isspace() == False:
-                columnHeaders.append(string)
-        columnHeaders=columnHeaders[1:]   
-        df = pd.read_csv(file_name, sep=' ', skipinitialspace=True, skiprows=[0,1,2], names=columnHeaders)
-        df = df.replace('-','e-', regex=True)
-        df = df.replace('Ee','e', regex=True)
-        for i in columnHeaders:
-            df[i] = pd.to_numeric(df[i], downcast="float")
-        
-        return df, columnHeaders
+            if not string.isspace():
+                column_headers.append(string)
+        column_headers = column_headers[1:]
+        df = pd.read_csv(file_name, sep=' ', skipinitialspace=True, skiprows=[0, 1, 2], names=column_headers)
+        df = df.replace('-', 'e-', regex=True)
+        df = df.replace('Ee', 'e', regex=True)
+        for i in column_headers:
+            try:
+                df[i] = pd.to_numeric(df[i], downcast="float")
+            except:
+                print(f'Error with {i}')
+
+        return df, column_headers
 
 
 def tecplot_2d(data_frame, scalar_name, vmin, vmax):
@@ -40,8 +43,8 @@ def tecplot_2d(data_frame, scalar_name, vmin, vmax):
 
 def initialise1D(file_cat):
     df, column_headers = read_tecplot(file_cat, 1)
-    fig, ax = plt.subplots(figsize=(9,6))
-    line, = ax.plot(np.zeros_like(df['X']),df['X'])
+    fig, ax = plt.subplots(figsize=(9, 6))
+    line, = ax.plot(df['X'], np.zeros_like(df['X']))
     return fig, ax, line
 
 
@@ -62,7 +65,7 @@ def box_plot(file_cat, plot_var, max_time):
     series = np.empty(max_time)
     try:
         for i in np.arange(0, max_time):
-            df, column_headers = read_tecplot(file_cat, i+1)
+            df, column_headers = read_tecplot(file_cat, i + 1)
             series[i] = df[plot_var]
     except KeyError:
         return
@@ -90,14 +93,14 @@ def time_nav_1d(file_cat, time, plot_var, max_time):
     tecplot_1d(df, plot_var, lims)
 
 
-def plot_var_range(max_time, file_cat, plot_var):
+def plot_var_range(max_time, file_cat, plot_vars):
     min_list = []
     max_list = []
     for t in range(1, max_time + 1):
         df = read_tecplot(file_cat, t)[0]
-        s = pd.to_numeric(df.loc[:, plot_var], errors='coerce')
-        min_list.append(s.nsmallest(1).values)
-        max_list.append(s.nlargest(1).values)
+        arr = df.loc[:, plot_vars].to_numpy()
+        min_list.append(arr.min())
+        max_list.append(arr.max())
 
     lower = np.amin(min_list)
     upper = np.amax(max_list)
@@ -129,6 +132,7 @@ def breakthrough(time, plot_var, data_frame):
     ax.plot(time, data_frame.loc[:, plot_var])
     return fig, ax
 
+
 def read_times(path):
     """return a dictionary of lines in a file, with the values as the line numbers.
 
@@ -136,7 +140,7 @@ def read_times(path):
     so line numbers in dictionary will map to the true line number in the file.
     """
     import re
-    
+
     with open(path, 'r') as f:
         for line_num, line in enumerate(f):
             # input files edited on unix systems have newline characters that must be stripped.
@@ -150,7 +154,6 @@ def read_times(path):
                 pass
 
         f.close()
-        
+
         line = [float(x) for x in line]
     return line
-
