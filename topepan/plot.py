@@ -18,7 +18,7 @@ def read_tecplot(file_cat, file_num):
                 column_headers.append(string)
         column_headers = column_headers[1:]
         df = pd.read_csv(file_name, sep=' ', skipinitialspace=True, skiprows=[0, 1, 2], names=column_headers)
-        df = df.replace('-', 'e-', regex=True)
+        df = df.replace('-(?=[0-9]{3})', 'e-', regex=True)
         df = df.replace('Ee', 'e', regex=True)
         for i in column_headers:
             try:
