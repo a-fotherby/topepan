@@ -156,3 +156,19 @@ def read_times(path):
 
         line = [float(x) for x in line]
     return line
+
+
+def get_times(path):
+    import re
+    time_array = []
+    max_time = data_cats(path)[1]
+
+    for i in range(max_time):
+        j = i + 1
+        with open(f'{path}/MineralPercent{j}.tec') as f:
+            top_line = f.readline()
+            pattern = r"\d+.\d+[Ee][+-]\d+"
+            header = re.search(pattern, top_line)
+            time_array.append(float(header.group()))
+            f.close()
+    return time_array
