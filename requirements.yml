@@ -1,9 +1,37 @@
+# conda env create --file requirements.yml
+#
+# The widget frontend has to be in the environment that *serves* Jupyter, not just the one
+# providing the kernel: a kernel with ipywidgets emits a widget model, and a server without
+# jupyterlab_widgets has nothing to draw it with, so the cell prints `IntSlider(value=0, ...)`
+# instead of a slider. Serving Jupyter from an environment that lacks it is the usual reason
+# topepan's widgets appear broken. Everything needed to both serve and run is listed here, so
+# launching Jupyter from this environment works without further setup.
 name: topepan
+channels:
+  - conda-forge
 dependencies:
-    - numpy
-    - pandas
-    - jupyter
-    - nb_conda_kernels
-    - matplotlib
-    - pathlib
-    - ipywidgets
+  - python>=3.10
+
+  # Data handling. netcdf4 and xarray are for sweep.ipynb, which reads an Omphalos results.nc
+  # through coeus rather than reading .tec files directly.
+  - numpy
+  - pandas
+  - xarray
+  - netcdf4
+
+  # Plotting. ipympl backs the `%matplotlib ipympl` line the notebooks use for panning and
+  # zooming; without it they fall back to static images.
+  - matplotlib
+  - ipympl
+
+  # Serving and running notebooks. ipykernel is what lets this environment be selected as a
+  # kernel at all, and nb_conda_kernels is what makes it visible from another environment's
+  # Jupyter.
+  - jupyterlab
+  - notebook
+  - ipykernel
+  - nb_conda_kernels
+
+  # Widgets: ipywidgets for the kernel side, jupyterlab_widgets for the frontend.
+  - ipywidgets>=8
+  - jupyterlab_widgets>=3
