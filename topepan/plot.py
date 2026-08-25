@@ -23,6 +23,10 @@ def read_tecplot(file_cat, file_num):
                 column_headers.append(string)
         column_headers = column_headers[1:]
         df = pd.read_csv(file_name, sep=' ', skipinitialspace=True, skiprows=[0, 1, 2], names=column_headers)
+        # CrunchTope drops the 'E' from an exponent that needs three digits, writing
+        # '1.2345-100'. Repaired by requiring a digit on *both* sides: a lookahead for the digits
+        # alone would also match the leading minus of an ordinary negative value, turning a cell
+        # holding '-100.0' into 'e-100.0' and failing to_numeric on it.
         df = df.replace(r'(\d)-(\d)', r'\1e-\2', regex=True)
         df = df.replace(r'Ee', 'e', regex=True)
         for i in column_headers:
@@ -70,7 +74,8 @@ def initialise1D(file_cat, vertical=True):
     return fig, ax, line
 
 
-def draw_profile(ax, distance, values, vertical=True, lower=None, upper=None, value_label=''):
+def draw_profile(ax, distance, values, vertical=True, lower=None, upper=None, value_label='',
+                 log10=False):
     """Draw a 1-D profile, in whichever orientation, replacing whatever the axes held.
 
     The axes are cleared and redrawn rather than the existing line being repointed, because
@@ -84,7 +89,23 @@ def draw_profile(ax, distance, values, vertical=True, lower=None, upper=None, va
         vertical: Depth convention -- distance down the y axis, value across the top.
         lower, upper: Limits for the value axis, whichever axis that turns out to be.
         value_label: Labels the value axis; the spatial axis is labelled 'X'.
+        log10: Plot log10 of the magnitude, for a quantity spanning orders of magnitude. The
+            absolute value is taken because rates are signed, so the sign is lost -- the label says
+            so rather than leaving it to be inferred.
     """
+    if log10:
+        values = np.log10(np.abs(np.asarray(values, dtype=float)))
+        value_label = f'log10 |{value_label}|' if value_label else 'log10 |value|'
+
+        if lower is not None:
+            # A limit at or through zero has no logarithm; fall back to autoscaling rather than
+            # handing matplotlib a NaN or -inf, which silently blanks the axis. The divide-by-zero
+            # that produces the -inf is the case being detected, so it is not worth warning about.
+            with np.errstate(divide='ignore'):
+                limits = np.log10(np.abs([lower, upper]))
+
+            lower, upper = (limits if np.all(np.isfinite(limits)) else (None, None))
+
     ax.clear()
 
     if vertical:
@@ -222,3 +243,19 @@ def read_times(path):
 
         line = [float(x) for x in line]
     return line
+
+
+def get_times(path):
+    import re
+    time_array = []
+    max_time = data_cats(path)[1]
+
+    for i in range(max_time):
+        j = i + 1
+        with open(f'{path}/MineralPercent{j}.tec') as f:
+            top_line = f.readline()
+            pattern = r"\d+.\d+[Ee][+-]\d+"
+            header = re.search(pattern, top_line)
+            time_array.append(float(header.group()))
+            f.close()
+    return time_array
