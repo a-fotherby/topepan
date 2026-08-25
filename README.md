@@ -36,9 +36,13 @@ jupyter lab
 
 ## Usage
 
-Pick the notebook matching the shape of your output, set the run folder in the notebook itself, and
-work through it. There is no configuration file to edit first: the folder you are browsing changes
-several times a session, so it is a widget in the notebook rather than a setting somewhere else.
+Pick the notebook matching the shape of your output, edit the path at the top of it, and work
+through it. There is no configuration file to set up first: the run you are looking at changes
+several times a session, so it is a plain assignment in the notebook you already have open, where
+your editor can complete the path for you.
+
+The committed notebooks carry a placeholder path, so the first thing to do in a fresh checkout is
+point it at a real run.
 
 ---
 
@@ -52,9 +56,9 @@ several times a session, so it is a widget in the notebook rather than a setting
 
 ### Browsing one run — `box.ipynb`, `column.ipynb`
 
-These read CrunchTope's `.tec` output directly. Type the run folder into the **Run folder** box and
-the output types, variables and time steps refresh to match, so switching between runs needs no code
-edit and no kernel restart.
+These read CrunchTope's `.tec` output directly. `column.ipynb` takes the output folder;
+`box.ipynb` takes the input deck, since it reads the output times out of it and finds the `.tec`
+files beside it. Edit the path and re-run from that cell down.
 
 `column.ipynb` draws either way round. **X on the y axis** is the depth convention — distance
 downwards, value across the top — and **X on the x axis** reads better for a flow path. Both are
