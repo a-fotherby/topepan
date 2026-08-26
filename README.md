@@ -16,6 +16,7 @@
   <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
   <img src="https://img.shields.io/badge/CrunchTope-supported-orange" alt="CrunchTope">
+  <img src="https://img.shields.io/badge/MIN3P-sweeps-orange" alt="MIN3P">
   <img src="https://img.shields.io/badge/Omphalos-sweeps-orange" alt="Omphalos">
 </p>
 
@@ -56,19 +57,32 @@ point it at a real run.
 
 ### Browsing one run — `box.ipynb`, `column.ipynb`
 
-These read CrunchTope's `.tec` output directly. `column.ipynb` takes the output folder;
-`box.ipynb` takes the input deck, since it reads the output times out of it and finds the `.tec`
-files beside it. Edit the path and re-run from that cell down.
+These read the output files directly — CrunchTope's `.tec` or MIN3P's `.gs*`, whichever the folder
+holds. Give either the run directory or the CrunchTope deck: CrunchTope states its output times in
+the deck and nowhere else, so passing the deck gets the times as well as the output beside it, while
+MIN3P stamps each snapshot itself and needs only the directory. Edit the path and re-run from that
+cell down.
 
-`column.ipynb` draws either way round. **X on the y axis** is the depth convention — distance
-downwards, value across the top — and **X on the x axis** reads better for a flow path. Both are
-useful for a 1-D column, so it is a toggle rather than a decision baked into the notebook.
+Snapshot numbering differs and the notebooks follow whatever is actually on disk: CrunchTope numbers
+from 1, MIN3P from 0 with snapshot 0 the initial state, and MIN3P writes the flow field far fewer
+times than the chemistry, so the slider is re-ranged per output type.
+
+`column.ipynb` draws either way round. **Distance on the y axis** is the depth convention — distance
+downwards, value across the top — and **distance on the x axis** reads better for a flow path. Both
+are useful for a 1-D column, so it is a toggle rather than a decision baked into the notebook. The
+profile follows whichever axis actually varies, so a column running down Z is drawn along Z.
 
 ### Browsing a sweep — `sweep.ipynb`
 
 A sweep is many runs that differ in whatever was varied, and it is read through Omphalos's `coeus`
 package rather than from `.tec` files: point it at a `results.nc` and it finds `conditions.nc`
 alongside.
+
+**CrunchTope or MIN3P**, without being told which. The two disagree about what to call things —
+CrunchTope has `X`/`Y`/`Z` and a `time`, MIN3P has `x`/`y`/`z` and counts snapshots by `output` — so
+groups and axes are found by shape rather than by name, and a column running down `z` is profiled
+along `z`. A MIN3P sweep writes no `conditions.nc`; what varied is recovered from `records.pkl` by
+diffing the decks against each other.
 
 This is the one notebook that needs something outside topepan. It finds Omphalos in this order, so
 on a machine where the two sit side by side there is nothing to configure:
