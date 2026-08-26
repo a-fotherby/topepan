@@ -1,7 +1,8 @@
 # Topepan
 
 <p align="center">
-  <strong>A Jupyter environment for exploring CrunchTope output and Omphalos sweeps</strong>
+  <strong>A Jupyter environment for exploring CrunchTope and MIN3P output, and
+  <a href="https://github.com/a-fotherby/Omphalos">Omphalos</a> sweeps</strong>
 </p>
 
 <p align="center">
@@ -16,8 +17,8 @@
   <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
   <img src="https://img.shields.io/badge/CrunchTope-supported-orange" alt="CrunchTope">
-  <img src="https://img.shields.io/badge/MIN3P-sweeps-orange" alt="MIN3P">
-  <img src="https://img.shields.io/badge/Omphalos-sweeps-orange" alt="Omphalos">
+  <img src="https://img.shields.io/badge/MIN3P-supported-orange" alt="MIN3P">
+  <a href="https://github.com/a-fotherby/Omphalos"><img src="https://img.shields.io/badge/Omphalos-sweeps-orange" alt="Omphalos"></a>
 </p>
 
 ---
@@ -52,7 +53,7 @@ point it at a real run.
 | Notebook | Reads | What it does |
 |---|---|---|
 | `box.ipynb` | one run, 0-D | Time series of a box model's state |
-| `column.ipynb` | one run, 1-D | Depth profile with a time slider, and a choice of orientation |
+| `column.ipynb` | one run, 1-D | Depth profile with a snapshot slider, and a choice of orientation |
 | `sweep.ipynb` | an Omphalos sweep | Every run of a sweep at once, compared across whatever was varied |
 
 ### Browsing one run — `box.ipynb`, `column.ipynb`
@@ -74,9 +75,9 @@ profile follows whichever axis actually varies, so a column running down Z is dr
 
 ### Browsing a sweep — `sweep.ipynb`
 
-A sweep is many runs that differ in whatever was varied, and it is read through Omphalos's `coeus`
-package rather than from `.tec` files: point it at a `results.nc` and it finds `conditions.nc`
-alongside.
+A sweep is many runs that differ in whatever was varied, and it is read through the `coeus` package
+of [Omphalos](https://github.com/a-fotherby/Omphalos) rather than from `.tec` files: point it at a
+`results.nc` and it finds `conditions.nc` alongside.
 
 **CrunchTope or MIN3P**, without being told which. The two disagree about what to call things —
 CrunchTope has `X`/`Y`/`Z` and a `time`, MIN3P has `x`/`y`/`z` and counts snapshots by `output` — so
@@ -88,6 +89,7 @@ This is the one notebook that needs something outside topepan. It finds Omphalos
 on a machine where the two sit side by side there is nothing to configure:
 
 1. `coeus` already importable — e.g. `pip install -e /path/to/Omphalos` into this environment
+   ([clone it here](https://github.com/a-fotherby/Omphalos))
 2. the `OMPHALOS_DIR` environment variable
 3. an `Omphalos` directory beside wherever the notebook is running, the usual layout
 
