@@ -349,7 +349,7 @@ def import_time_series(file_name):
     column_headers = column_headers.split(',')
     print(column_headers)
 
-    df = pd.read_csv(file_name, engine='python', sep='\s+', skiprows=[0, 1])
+    df = pd.read_csv(file_name, engine='python', sep=r'\s+', skiprows=[0, 1])
     df.columns = column_headers
     return df, column_headers
 
@@ -373,7 +373,7 @@ def read_times(path):
             # also strip any trailing whitespace.
             if line.startswith('spatial_profile'):
                 line = line.rstrip('\n ')
-                line = re.split('\s+', line)
+                line = re.split(r'\s+', line)
                 line.pop(0)
                 break
             else:

@@ -34,6 +34,10 @@ jupyter lab
 **Launch Jupyter from this environment.** The widget frontend has to live in the environment that
 *serves* Jupyter, not merely the one providing the kernel — see [Troubleshooting](#troubleshooting).
 
+This environment also carries what Omphalos needs to run, so one `conda env create` covers both
+running sweeps and browsing them. Omphalos's own `requirements.yml` deliberately omits the notebook
+and plotting stack so it stays installable on a headless cluster.
+
 ---
 
 ## Usage

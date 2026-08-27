@@ -1,32 +1,25 @@
 # conda env create --file requirements.yml
 #
-# The widget frontend has to be in the environment that *serves* Jupyter, not just the one
-# providing the kernel: a kernel with ipywidgets emits a widget model, and a server without
-# jupyterlab_widgets has nothing to draw it with, so the cell prints `IntSlider(value=0, ...)`
-# instead of a slider. Serving Jupyter from an environment that lacks it is the usual reason
-# topepan's widgets appear broken. Everything needed to both serve and run is listed here, so
-# launching Jupyter from this environment works without further setup.
+# Launch Jupyter from this environment: the widget frontend has to be where Jupyter is *served*,
+# not merely where the kernel runs, or the notebooks print `IntSlider(value=0, ...)` instead of a
+# slider.
 name: topepan
 channels:
   - conda-forge
 dependencies:
   - python>=3.10
 
-  # Data handling. netcdf4 and xarray are for sweep.ipynb, which reads an Omphalos results.nc
-  # through coeus rather than reading .tec files directly.
+  # Data handling, and what coeus needs to read an Omphalos results.nc.
   - numpy
   - pandas
   - xarray
   - netcdf4
 
-  # Plotting. ipympl backs the `%matplotlib ipympl` line the notebooks use for panning and
-  # zooming; without it they fall back to static images.
+  # Plotting. ipympl backs the `%matplotlib ipympl` line the notebooks use.
   - matplotlib
   - ipympl
 
-  # Serving and running notebooks. ipykernel is what lets this environment be selected as a
-  # kernel at all, and nb_conda_kernels is what makes it visible from another environment's
-  # Jupyter.
+  # Serving and running notebooks.
   - jupyterlab
   - notebook
   - ipykernel
@@ -35,3 +28,13 @@ dependencies:
   # Widgets: ipywidgets for the kernel side, jupyterlab_widgets for the frontend.
   - ipywidgets>=8
   - jupyterlab_widgets>=3
+
+  # Omphalos itself, so one environment both runs sweeps and browses them. Its own
+  # requirements.yml stays free of the notebook stack to remain installable on a headless cluster,
+  # so this file is the superset.
+  - f90nml
+  - pyyaml
+  - pexpect
+
+  # Left out as optional: parallel (rhea's non-default backend), pytest (Omphalos's test suite),
+  # pygcc (recomputing database log K columns).
