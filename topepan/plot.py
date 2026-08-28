@@ -350,18 +350,6 @@ def initialise_box(file_cat):
     return fig, ax
 
 
-def time_nav(file_cat, time, plot_var, max_time):
-    df, column_headers = read_tecplot(file_cat, time)
-    vmin, vmax = plot_var_range(max_time, file_cat, plot_var)
-    tecplot_2d(df, plot_var, vmin, vmax)
-
-
-def time_nav_1d(file_cat, time, plot_var, max_time):
-    df, column_headers = read_tecplot(file_cat, time)
-    lims = plot_var_range(max_time, file_cat, plot_var)
-    tecplot_1d(df, plot_var, lims)
-
-
 def plot_var_range(max_time, file_cat, plot_vars):
     min_list = []
     max_list = []
@@ -375,31 +363,6 @@ def plot_var_range(max_time, file_cat, plot_vars):
     upper = np.amax(max_list)
 
     return lower, upper
-
-
-def import_time_series(file_name):
-    with open(file_name) as f:
-        f.readline()
-        header_line = f.readline()
-    column_headers = header_line[11:]
-    column_headers = column_headers.replace("'", "")
-    column_headers = column_headers.replace('"', "")
-    column_headers = column_headers.replace('(days)', "")
-    column_headers = column_headers.replace(' ', "")
-    column_headers = column_headers.rstrip('\n')
-    column_headers = column_headers.rstrip(',')
-    column_headers = column_headers.split(',')
-    print(column_headers)
-
-    df = pd.read_csv(file_name, engine='python', sep=r'\s+', skiprows=[0, 1])
-    df.columns = column_headers
-    return df, column_headers
-
-
-def breakthrough(time, plot_var, data_frame):
-    fig, ax = plt.subplots()
-    ax.plot(time, data_frame.loc[:, plot_var])
-    return fig, ax
 
 
 def read_times(path):
@@ -521,17 +484,3 @@ def profile_axis(data_frame):
     return next(iter(varying or present), 'X')
 
 
-def get_times(path):
-    import re
-    time_array = []
-    max_time = data_cats(path)[1]
-
-    for i in range(max_time):
-        j = i + 1
-        with open(f'{path}/MineralPercent{j}.tec') as f:
-            top_line = f.readline()
-            pattern = r"\d+.\d+[Ee][+-]\d+"
-            header = re.search(pattern, top_line)
-            time_array.append(float(header.group()))
-            f.close()
-    return time_array
