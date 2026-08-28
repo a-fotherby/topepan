@@ -3,7 +3,6 @@ import re
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 
 _directory = None
 # Which code wrote the directory `data_cats` was last pointed at, and -- for MIN3P, which names its
@@ -79,60 +78,6 @@ def read_tecplot(file_cat, file_num):
                           else name for name in column_headers]
 
         return df, column_headers
-
-
-def map_axes(data_frame):
-    """The two spatial axes a map should be drawn over, as (across, up).
-
-    Whichever two actually vary, so a slice in X-Z is mapped over X and Z rather than over an X-Y
-    that has only one row in it.
-
-    Raises:
-        ValueError: if fewer than two axes vary, which means this is a column or a single cell
-            rather than anything mappable.
-    """
-    present = [name for name in ('X', 'Y', 'Z') if name in data_frame]
-    varying = [name for name in present if data_frame[name].nunique() > 1]
-
-    if len(varying) < 2:
-        raise ValueError(f'need two spatial axes to map, but only {varying or "none"} varies; '
-                         f'this output is 1-D, so draw a profile instead')
-
-    return varying[0], varying[1]
-
-
-def tecplot_2d(data_frame, scalar_name, vmin=None, vmax=None, axis=None, colorbar=True):
-    """Filled contour map of one scalar over the two axes that vary.
-
-    Args:
-        vmin, vmax: Limits for the colour scale. Left to matplotlib if either is None, which is
-            what a single snapshot wants; pass `plot_var_range` output to hold the scale still
-            across a series.
-        axis: Axes to draw on. A new figure is made if omitted.
-
-    Returns:
-        The axes drawn on.
-    """
-    across, up = map_axes(data_frame)
-    # Keyword arguments: pandas 2.0 removed the positional form of pivot, so the original call
-    # raised TypeError on any current pandas.
-    grid = data_frame.pivot(index=up, columns=across, values=scalar_name)
-    axis = axis or plt.subplots()[1]
-
-    x, y = np.meshgrid(grid.columns.values, grid.index.values)
-    # Autoscale unless both limits are given, rather than handing linspace a None.
-    levels = np.linspace(vmin, vmax, 16) if None not in (vmin, vmax) else 16
-    contours = axis.contourf(x, y, grid.values, levels=levels, cmap=cm.viridis, extend='both')
-
-    # The columns of the pivot are the horizontal axis and its index the vertical one. The labels
-    # used to say the opposite of that, naming each axis after the other.
-    axis.set_xlabel(f'{across} (m)')
-    axis.set_ylabel(f'{up} (m)')
-
-    if colorbar:
-        axis.figure.colorbar(contours, ax=axis, label=scalar_name)
-
-    return axis
 
 
 def first_snapshot(file_cat):
