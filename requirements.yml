@@ -17,7 +17,8 @@ dependencies:
 
   # Plotting. ipympl backs the `%matplotlib ipympl` line the notebooks use.
   - matplotlib
-  - ipympl
+  # 0.10 frontend sends the `buttons` field matplotlib >= 3.10 requires on mouse events.
+  - ipympl>=0.10
 
   # Serving and running notebooks.
   - jupyterlab
